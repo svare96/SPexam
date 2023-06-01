@@ -1,0 +1,11 @@
+# ninja log v5
+17	85	7072277001047841	CMakeFiles/Exam.dir/agent.cpp.obj	6bdc5f4368eb380c
+2	1229	7073168820657993	CMakeFiles/Exam.dir/main.cpp.obj	d537c9014e9e14c1
+10	81	7072277001012847	CMakeFiles/Exam.dir/vessel_t.cpp.obj	dbfc1b22724cabb9
+1	213	7073181114797205	build.ninja	b7931886fa8961f3
+1229	1420	7073168822557997	Exam.exe	ef5af217a2e39129
+21	93	7072277001147840	CMakeFiles/Exam.dir/symbol_table.cpp.obj	354f330214d209fc
+2	1682	7073161618216636	CMakeFiles/Exam.dir/lib/lib.cpp.obj	30e8ec8936e01d44
+7	68	7072277000887853	CMakeFiles/Exam.dir/reaction.cpp.obj	5ed5da597dd60d85
+13	84	7072277001052843	CMakeFiles/Exam.dir/algorithm.cpp.obj	1fbe74c9ff91d87f
+5	49	7073161601921640	CMakeFiles/Exam.dir/lib/graph.cpp.obj	4bd833bce212ea07
