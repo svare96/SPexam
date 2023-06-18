@@ -1,0 +1,19 @@
+digraph {
+S [shape=box];
+S -> N
+I [shape=box];
+I -> N
+E [shape=box];
+N -> E
+N -> I
+N [label="0.000077"];E -> N1
+N1 -> I
+N1 [label="0.196078"];I -> N11
+R [shape=box];
+N11 -> R
+N11 [label="0.322581"];I -> N111
+H [shape=box];
+N111 -> H
+N111 [label="0.000290"];H -> N1111
+N1111 -> R
+N1111 [label="0.098814"];}

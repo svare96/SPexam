@@ -1,0 +1,9 @@
+digraph {
+A [shape=box];
+A -> N
+C [shape=box];
+C -> N
+B [shape=box];
+N -> B
+N -> C
+N [label="0.001000"];}

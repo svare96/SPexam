@@ -1,43 +1,48 @@
 #include <iostream>
-#include <fstream>
 #include <algorithm>
 #include <cmath>
-#include <utility>
+#include <future>
 
 #include "./lib/lib.h"
-#include <omp.h>
 
-#define THREAD_NUM 4
+//using namespace stochastic;
 
-using namespace stochastic;
+void circadian(const std::string &filePath);
+void fig1Examples(int a, int b, int c, double endTime, const std::string& filePath);
+int covid19SEIHR(int N, const std::string& filePath);
+void covid19on20Threads (const std::string &filePath);
 
-void circadian();
-void generateNetworkGraph(const std::vector<Reaction>& reactionVec);
-SymbolTable<Agent> generateSymbolTable(const std::vector<Agent>& agentVec);
-void fig1Examples(int a, int b, int c, double endTime, std::string fileName);
-void covid19SEIHR(int N, std::string fileName);
 
 int main() {
-    omp_set_num_threads(THREAD_NUM);
     int NNJ = 589755;
     int NDK = 5822763;
-#pragma omp parallel
-    {
-        std::cout << "Hello, World!" << std::endl;
-    }
-//    circadian();
-//    fig1Examples(100, 0, 1, 2000, "fig1A.csv");
-//    fig1Examples(100, 0, 2, 1500, "fig1B.csv");
-//    fig1Examples(50, 50, 1, 2000, "fig1C.csv");
-//    covid19SEIHR(10000, "covid10k.csv");
-//    covid19SEIHR(NNJ, "NorthJutland.csv");
-//    covid19SEIHR(NNJ, "Denmark.csv");
+
+    std::cout << "Hello, World!" << std::endl;
+    /**
+     * Req. 5 + 6
+     * This is where we demonstrate the use of the library on the three examples
+     * The plots are found in the report
+     */
+//    circadian("../graphs/circadian.csv");
+//    fig1Examples(100, 0, 1, 2000, "../graphs/fig1A.csv");
+//    fig1Examples(100, 0, 2, 1500, "../graphs/fig1B.csv");
+//    fig1Examples(50, 50, 1, 2000, "../graphs/fig1C.csv");
+//    covid19SEIHR(10000, "../graphs/covid10k.csv");
+//    covid19SEIHR(NNJ, "../graphs/NorthJutland.csv");
+//    covid19SEIHR(NNJ, "../graphs/Denmark.csv");
+
+    covid19on20Threads ("../graphs/covid10k.csv");
 
 
     return 0;
 }
 
-void circadian() {
+/**
+ * This function is used to perform circadian oscillation as seen in Example A
+ *
+ * @param filePath
+ */
+void circadian(const std::string &filePath) {
     auto alphaA = 50.0;
     auto alpha_A = 500.0;
     auto alphaR = 0.01;
@@ -54,7 +59,7 @@ void circadian() {
     auto thetaA = 50.0;
     auto thetaR = 100.0;
 
-    std::vector<Agent> agentVec;
+    std::vector<stochastic::Agent> agentVec;
     auto DA = stochastic::Agent("DA", 1);
     auto D_A = stochastic::Agent("D_A", 0);
     auto DR = stochastic::Agent("DR", 1);
@@ -75,7 +80,7 @@ void circadian() {
     agentVec.push_back(R);
     agentVec.push_back(C);
 
-    std::vector<Reaction> reactionVec;
+    std::vector<stochastic::Reaction> reactionVec;
     reactionVec.emplace_back(A + DA >>= D_A, gammaA);
     reactionVec.emplace_back(D_A >>= DA + A, thetaA);
     reactionVec.emplace_back(A + DR >>= D_R, gammaR);
@@ -93,29 +98,27 @@ void circadian() {
     reactionVec.emplace_back(MA >>= "env", deltaMA);
     reactionVec.emplace_back(MR >>= "env", deltaMR);
 
-    SymbolTable<Agent> table = generateSymbolTable(agentVec);
+    stochastic::Visualizer::generateNetworkGraph(reactionVec, "C:/Users/jonas/AAU/P8/sp/SPexam/Exam/graphs/circadianNetworkGraph.dot");
+    stochastic::Visualizer::prettyPrintReactions(reactionVec);
 
-//    generateNetworkGraph(reactionVec);
-
-    std::vector<Monitor> monitorVec;
-    Monitor monitorAvg;
-    for (int i = 0; i < 100; ++i) {
-        monitorVec.push_back(stochastic::Algorithm::simulation(reactionVec, 100, table));
-    }
-    for (auto &monitor : monitorVec) {
-        //TODO: figure out how to compute average of A, C, R of 100 trajectories
-    }
-//    Monitor monitor = stochastic::Algorithm::simulation(reactionVec, 100, table);
-//    monitor.fileStream("circadian.csv");
+    stochastic::Monitor monitor = stochastic::Algorithm::simulation(reactionVec, 100, agentVec, filePath);
 }
 
-void fig1Examples(int a, int b, int c, double endTime, std::string fileName) {
-    std::vector<Agent> agentVec;
-    std::vector<Reaction> reactionVec;
+/**
+ * This function is used to demonstrate and plot the three plots in Figure 1
+ * @param a
+ * @param b
+ * @param c
+ * @param endTime
+ * @param filePath
+ */
+void fig1Examples(int a, int b, int c, double endTime, const std::string& filePath) {
+    std::vector<stochastic::Agent> agentVec;
+    std::vector<stochastic::Reaction> reactionVec;
 
-    auto A = Agent("A", a);
-    auto B = Agent("B", b);
-    auto C = Agent("C", c);
+    auto A = stochastic::Agent("A", a);
+    auto B = stochastic::Agent("B", b);
+    auto C = stochastic::Agent("C", c);
 
     agentVec.push_back(A);
     agentVec.push_back(B);
@@ -123,14 +126,14 @@ void fig1Examples(int a, int b, int c, double endTime, std::string fileName) {
 
     reactionVec.emplace_back(A + C >>= B + C, 0.001);
 
-    SymbolTable<Agent> table = generateSymbolTable(agentVec);
-    Monitor monitor = stochastic::Algorithm::simulation(reactionVec, endTime, table);
-    monitor.fileStream(std::move(fileName));
+    stochastic::Visualizer::generateNetworkGraph(reactionVec, "C:/Users/jonas/AAU/P8/sp/SPexam/Exam/graphs/fig1NetworkGraph.dot");
+
+    stochastic::Monitor monitor = stochastic::Algorithm::simulation(reactionVec, endTime, agentVec, filePath);
 }
 
-void covid19SEIHR(int N, std::string fileName) {
-    std::vector<Agent> agentVec;
-    std::vector<Reaction> reactionVec;
+int covid19SEIHR(int N, const std::string& filePath) {
+    std::vector<stochastic::Agent> agentVec;
+    std::vector<stochastic::Reaction> reactionVec;
 
     const auto eps = 0.0009; // initial fraction of infectious
     const auto I0 = size_t(std::round(eps*N)); // initial infectious
@@ -144,11 +147,11 @@ void covid19SEIHR(int N, std::string fileName) {
     const auto kappa = gamma * P_H*(1.0-P_H); // hospitalization rate (I -> H)
     const auto tau = 1.0/10.12; // recovery/death rate in hospital (H -> R) ~10.12 days
 
-    auto S = Agent("S", S0);
-    auto E = Agent("E", E0);
-    auto I = Agent("I", I0);
-    auto H = Agent("H", 0);
-    auto R = Agent("R", 0);
+    auto S = stochastic::Agent("S", S0);
+    auto E = stochastic::Agent("E", E0);
+    auto I = stochastic::Agent("I", I0);
+    auto H = stochastic::Agent("H", 0);
+    auto R = stochastic::Agent("R", 0);
     agentVec.push_back(S); //susceptible
     agentVec.push_back(E); //exposed
     agentVec.push_back(I); //infectious
@@ -161,50 +164,50 @@ void covid19SEIHR(int N, std::string fileName) {
     reactionVec.emplace_back(I >>= H, kappa); // infectious becomes hospitalized
     reactionVec.emplace_back(H >>= R, tau); // hospitalized becomes removed
 
-    SymbolTable<Agent> table = generateSymbolTable(agentVec);
-    Monitor monitor = stochastic::Algorithm::simulation(reactionVec, 100, table);
-    monitor.estimatePeak();
+    stochastic::Visualizer::generateNetworkGraph(reactionVec, "C:/Users/jonas/AAU/P8/sp/SPexam/Exam/graphs/covid19NetworkGraph.dot");
+
+    stochastic::Monitor monitor = stochastic::Algorithm::simulation(reactionVec, 100, agentVec, filePath);
+    int peak = monitor.estimatePeak();
+
     monitor.multiplyH();
-    monitor.fileStream(std::move(fileName));
+    monitor.fileStream(filePath);
+
+    return peak;
 }
 
-void generateNetworkGraph(const std::vector<Reaction>& reactionVec) {
-    std::ofstream outfile ("D:/Jonas/AAU/P8/Exam/graphs/networkgraph.dot");
-    //outfile.open("./graphs/networkgraph.dot", std::ofstream::out | std::ofstream::trunc);
+/**
+ * Req. 8
+ * The library supports multithreaded runs of its functions, by utilizing futures and async.
+ * In this function, we run the Covid 19 example on 20 threads, and calculate the the average peak of
+ * hospitalized agents
+ */
+void covid19on20Threads (const std::string &filePath) {
+    double peakMean = 0;
 
-    std::vector<std::string> nameVec;
+    std::future<int> cov1 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov2 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov3 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov4 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov5 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov6 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov7 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov8 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov9 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov10 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov11 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov12 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov13 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov14 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov15 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov16 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov17 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov18 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov19 = std::async(covid19SEIHR, 10000, filePath);
+    std::future<int> cov20 = std::async(covid19SEIHR, 10000, filePath);
 
-    std::string numNode = "N";
-
-    outfile << "digraph {" << std::endl;
-
-    for (auto &reaction : reactionVec) {
-        for (auto &lhs : reaction.leftHandSide) {
-            if (!(std::find(nameVec.begin(), nameVec.end(), lhs.name) != nameVec.end())) {
-                outfile << lhs.name + " [shape=box];" << std::endl;
-                nameVec.push_back(lhs.name);
-            }
-            outfile <<  lhs.name + " -> " + numNode << std::endl;
-        }
-        for (auto &rhs : reaction.rightHandSide) {
-            if (!(std::find(nameVec.begin(), nameVec.end(), rhs.name) != nameVec.end())) {
-                outfile << rhs.name + " [shape=box];" << std::endl;
-                nameVec.push_back(rhs.name);
-            }
-            outfile << numNode + " -> " + rhs.name << std::endl;
-        }
-        outfile << numNode + " [label=\"" + std::to_string(reaction.lambdaRate) + "\"];";
-        numNode += "1";
-    }
-
-    outfile << "}" << std::endl;
-    outfile.close();
-}
-
-SymbolTable<Agent> generateSymbolTable(const std::vector<Agent>& agentVec) {
-    auto symbolTable = SymbolTable<Agent>();
-    for (auto &agent : agentVec) {
-        symbolTable.insert(agent.name, agent);
-    }
-    return symbolTable;
+    peakMean += cov1.get() + cov2.get() + cov3.get() + cov4.get() + cov5.get() +
+            cov6.get() + cov7.get() + cov8.get() + cov9.get() + cov10.get() +
+            cov11.get() + cov12.get() + cov13.get() + cov14.get() + cov15.get() +
+            cov16.get() + cov17.get() + cov18.get() + cov19.get() + cov20.get();
+    std::cout << "Average estimated peak of 20 covid19 simulations: " + std::to_string(peakMean/20) << std::endl;
 }

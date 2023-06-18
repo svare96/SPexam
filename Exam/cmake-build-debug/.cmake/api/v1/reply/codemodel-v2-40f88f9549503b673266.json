@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "D:/Jonas/AAU/P8/Exam/cmake-build-debug",
-		"source" : "D:/Jonas/AAU/P8/Exam"
+		"build" : "C:/Users/jonas/AAU/P8/sp/SPexam/Exam/cmake-build-debug",
+		"source" : "C:/Users/jonas/AAU/P8/sp/SPexam/Exam"
 	},
 	"version" : 
 	{

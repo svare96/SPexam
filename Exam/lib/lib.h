@@ -26,6 +26,7 @@ namespace stochastic {
             this->amount = amount;
         }
 
+        //Req. 1
         std::vector<Agent> operator+(const Agent &other) const;
         friend stochastic::Reaction operator >>= (const Agent &lhs, const Agent &rhs);
         friend stochastic::Reaction operator >>= (const std::vector<Agent> &lhs, const Agent &rhs);
@@ -43,7 +44,7 @@ namespace stochastic {
         std::vector<Agent> leftHandSide;
         std::vector<Agent> rightHandSide;
 
-        double lambdaRate;
+        double lambdaRate{};
         double delay = DBL_MAX;
 
         std::string out;
@@ -56,6 +57,11 @@ namespace stochastic {
         }
     };
 
+    /**
+     * Req. 3
+     * This class allows us to store an instance of the reaction network, using Agent objects, in a symbol table
+     * @tparam T
+     */
     template <typename T>
     class SymbolTable {
         std::map<std::string, T> table;
@@ -100,73 +106,44 @@ namespace stochastic {
             return table;
         }
 
+        static SymbolTable<T> generateSymbolTable(const std::vector<T>& inputVec) {
+            auto symbolTable = SymbolTable<T>();
+            for (auto &input : inputVec) {
+                symbolTable.insert(input.name, input);
+            }
+            return symbolTable;
+        }
+
     };
 
+    /**
+     * Req. 7
+     * This class lets us instantiate a state monitor consisting of several symbol tables.
+     * This allows us to store our reactions over a timespan.
+     */
      class Monitor {
          std::map<double, std::vector<SymbolTable<Agent>>> monitorMap;
      public:
          Monitor() = default;
 
-         void insert (double &time, SymbolTable<Agent> &table) {
-             auto it = monitorMap.find(time);
-
-             if (it != monitorMap.end()) {
-                 auto tableVec = it -> second;
-                 tableVec.push_back(table);
-                 monitorMap[time] = tableVec;
-             }
-             else {
-                 monitorMap[time] = std::vector<SymbolTable<Agent>> {table};
-             }
-         }
-
-         void fileStream(std::string fileName) {
-             std::ofstream outFile ("D:/Jonas/AAU/P8/Exam/graphs/" + fileName);
-
-             if (outFile.is_open()) {
-                 outFile << "time,agentname,agentamount" << std::endl;
-
-                 for (auto &mapping : monitorMap) {
-                     for (auto &table : mapping.second) {
-                         for (auto &agent : table.fetchTable()) {
-                             outFile << std::to_string(mapping.first) + "," + agent.first + "," + std::to_string(agent.second.amount) << std::endl;
-                         }
-                     }
-                 }
-                 outFile.close();
-             }
-         }
-
-         void estimatePeak() {
-             auto peak = 0;
-             for (auto &mapping : monitorMap) {
-                 for (auto &table: mapping.second) {
-                     auto H = table.get("H");
-                     if (H.amount > peak) {
-                         peak = H.amount;
-                     }
-                 }
-             }
-             std::cout << "Estimated peak of hospitalized agents: " + std::to_string(peak) << std::endl;
-         }
-
-         void multiplyH() {
-             for (auto &mapping : monitorMap) {
-                 for (auto &table: mapping.second) {
-                     auto H = table.get("H");
-                     H.amount *= 1000;
-                     table.insert("H", H);
-                 }
-             }
-         }
+         void insert (double &time, SymbolTable<Agent> &table);
+         void fileStream(const std::string& fileName);
+         int estimatePeak();
+         void multiplyH();
      };
 
     class Algorithm {
     public:
-//        Algorithm() = default;
         static double computeDelay(stochastic::Reaction &r, stochastic::SymbolTable<Agent>& table);
         static bool amountChecker(const stochastic::Reaction& reaction, stochastic::SymbolTable<Agent>& table);
-        static stochastic::Monitor simulation(std::vector<stochastic::Reaction> &reactionVec, double endTime, stochastic::SymbolTable<Agent> table);
+        static stochastic::Monitor simulation(std::vector<stochastic::Reaction> &reactionVec, double endTime, std::vector<stochastic::Agent> &agentVec, const std::string& filePath);
+    };
+
+    class Visualizer {
+    public:
+        //Req. 2
+        static void prettyPrintReactions(const std::vector<Reaction> &reactionVec);
+        static void generateNetworkGraph(const std::vector<Reaction>& reactionVec, const std::string &filePath);
     };
 
 }
